@@ -12,11 +12,12 @@ const posts = {};
 const handleEvent = (type, data) => {
   if (type === "PostCreated") {
     const { id, title } = data;
-    post[id] = { id, title, comments: [] };
+    posts[id] = { id, title, comments: [] };
   }
 
   if (type === "CommentCreated") {
     const { id, content, postId, status } = data;
+
     const post = posts[postId];
     post.comments.push({ id, content, status });
   }
@@ -35,20 +36,20 @@ const handleEvent = (type, data) => {
 };
 
 app.get("/posts", (req, res) => {
-  handleEvent(type, data);
   res.send(posts);
 });
 
 app.post("/events", (req, res) => {
   const { type, data } = req.body;
+  handleEvent(type, data);
   res.send({});
 });
 
 app.listen(4002, async () => {
   console.log("Listening on 4002");
 
-  const { data } = await axios.get("http://localhost:4005/events");
-  for (let event of data) {
+  const res = await axios.get("http://localhost:4005/events");
+  for (let event of res.data) {
     handleEvent(event.type, event.data);
   }
 });
